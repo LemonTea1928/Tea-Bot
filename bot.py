@@ -20,7 +20,7 @@ from discord.ext import commands
 """
 Bot initialization
 """
-token: str = loads(Path("token.json").read_text())["token"]
+token: str = loads(Path("credentials/token.json").read_text())["token"]
 intents: discord.Intents = discord.Intents.all()
 intents.message_content = True
 bot: commands.Bot = commands.Bot(command_prefix="Do ", intents=intents)

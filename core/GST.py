@@ -268,9 +268,9 @@ GST google sheet database
 
 class GSTSheet:
     # Load the worksheet as a new tab for storage
-    url: str = open('core/url.txt', 'r').readline()
+    url: str = open('credentials/url.txt', 'r').readline()
     gc: pygsheets = pygsheets.authorize(
-        service_account_file="cogs/GSTcredentials.json"
+        service_account_file="credentials/GSTcredentials.json"
     )
     sht: pygsheets = gc.open_by_url(url)
     wks: pygsheets = sht.worksheet_by_title("Template")
