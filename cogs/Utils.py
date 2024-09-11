@@ -17,6 +17,17 @@ from discord.ext import commands
 
 
 class Utils(classes.Cog_Extension):
+    """
+    Cog extension class for various server utilities
+
+    Methods:
+        giveaway: Launch GST GUI
+        sync: Sync slash (app) commands
+        help: Slash command replacement for the text counterpart
+        load: Load a cog extension
+        unload: Unload a cog extension
+        reload: Reload a cog extension
+    """
     @app_commands.command(
         name="giveaway", description="Launch the Giveaway Setup Tool 開啟抽獎工具"
     )
