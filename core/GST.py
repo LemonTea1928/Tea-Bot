@@ -211,7 +211,9 @@ class GSTButtonView(discord.ui.View):
         super().__init__(timeout=None)
 
     @discord.ui.button(
-        style=discord.ButtonStyle.green, custom_id="join_giveaway_button", emoji="👈"
+        style=discord.ButtonStyle.green,
+        custom_id="join_giveaway_button",
+        emoji="👈",
     )
     async def on_button_click(
         self,
@@ -223,6 +225,7 @@ class GSTButtonView(discord.ui.View):
         values: list[str, str] = [[user.name, f"{user.id}"]]
         message: discord.Message = interaction.message
         embed: discord.Embed = message.embeds[0]
+
         # Check if the sheet with corresponding message exists
         try:
             current_sht: pygsheets = GSTSheet.sht.worksheet_by_title(
@@ -231,27 +234,6 @@ class GSTButtonView(discord.ui.View):
             current_sht_array: np.ndarray = np.array(
                 current_sht.get_col(col=2),
             )
-            # Check if the user has joined the corresponding giveaway
-            if f"{user.id}" in current_sht_array:
-                await interaction.response.send_message(
-                    content="❗ You've already joined! 你已經參加了！",
-                    ephemeral=True,
-                )
-                await message.edit(embed=checker(current_sht, embed))
-                time.sleep(0.5)
-                del (user, values, message, embed, current_sht, current_sht_array)
-                return
-            # Add the user to the sheet database for the giveaway random draw
-            try:
-                current_sht.append_table(values=values)
-            except Exception:
-                await interaction.response.send_message(
-                    content="✅ Successfully joined! 成功參加！",
-                    ephemeral=True,
-                )
-                await message.edit(embed=checker(current_sht, embed))
-                del (user, values, message, embed, current_sht, current_sht_array)
-
         except Exception:
             await interaction.response.send_message(
                 content="❌ This giveaway does not exist or has ended! "
@@ -259,6 +241,30 @@ class GSTButtonView(discord.ui.View):
                 ephemeral=True,
             )
             del user, values, message, embed
+            return
+
+        # Check if the user has joined the corresponding giveaway
+        if f"{user.id}" in current_sht_array:
+            await interaction.response.send_message(
+                content="❗ You've already joined! 你已經參加了！",
+                ephemeral=True,
+            )
+            await message.edit(embed=checker(current_sht, embed))
+            time.sleep(0.5)
+            del (user, values, message, embed, current_sht, current_sht_array)
+            return
+
+        # Add the user to the sheet database for the giveaway random draw
+        try:
+            current_sht.append_table(values=values)
+        except Exception:
+            await interaction.response.send_message(
+                content="✅ Successfully joined! 成功參加！",
+                ephemeral=True,
+            )
+            await message.edit(embed=checker(current_sht, embed))
+            del (user, values, message, embed, current_sht, current_sht_array)
+            return
 
 
 """
