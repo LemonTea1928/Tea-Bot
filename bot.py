@@ -14,22 +14,22 @@ import discord
 from discord.ext import commands
 
 
-"""
-Bot initialization
-"""
 token: str = loads(Path("credentials/token.json").read_text())["token"]
 intents: discord.Intents = discord.Intents.all()
 intents.message_content = True
 bot: commands.Bot = commands.Bot(command_prefix="Do ", intents=intents)
 
 
-"""
-Display the bot's activity & status after initialization
-"""
+
 
 
 @bot.event
 async def on_ready() -> None:
+    """Display the bot's activity & status after initialization
+
+    Returns:
+        None
+    """
     activity: discord.Activity = discord.Activity(
         type=discord.ActivityType.custom,
         name="custom",
@@ -42,11 +42,6 @@ async def on_ready() -> None:
         "-------------------------"
     )
     bot.add_view(GST.GSTButtonView())
-
-
-"""
-Command files loading, unloading & reloading
-"""
 
 
 @bot.command()
