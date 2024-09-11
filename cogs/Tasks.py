@@ -26,15 +26,16 @@ class Tasks(classes.Cog_Extension):
     async def giveaway_announce(self) -> None:
         # Draw the active giveaway winner(s)
         activity_sheet: pygsheets = GST.GSTSheet.wks1
-        sheet_df: pd.DataFrame = activity_sheet.get_as_df()
-        now_time: int = round(functions.get_time().timestamp())
         my_id: int = int(open('./credentials/my_id.txt').read())
 
-        indicator, index, message_id, winners_id = GST.random_draw(sheet_df, now_time)
+        indicator, index, message_id, winners_id = GST.random_draw(
+            sheet_df=activity_sheet.get_as_df(),
+            now_time=round(functions.get_time().timestamp()),
+        )
 
         match indicator:
             case 0:
-                return
+                pass
             case 1:
                 # Reply to the giveaway embed message
                 channel: discord.GuildChannel = self.bot.get_channel(
@@ -76,11 +77,10 @@ class Tasks(classes.Cog_Extension):
                     addr=(index + 2, 4),
                     val=", ".join(f"{winner[0]}" for winner in winners_id),
                 )
-                print("Giveaway draw successfully ended.\n")
 
                 del channel, message, current_sht, embed
         
-        del activity_sheet, sheet_df, indicator, index, message_id, winners_id, my_id
+        del activity_sheet, indicator, index, message_id, winners_id, my_id
 
     # Actions to perform BEFORE giveaway winner announcement
     @giveaway_announce.before_loop
