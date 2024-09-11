@@ -25,21 +25,21 @@ class Tasks(classes.Cog_Extension):
     @tasks.loop(minutes=1)
     async def giveaway_announce(self) -> None:
         # Draw the active giveaway winner(s)
-        print("\nAttempting to draw giveaway winner(s)...\n")
-        my_id: int = int(open('./credentials/my_id.txt', 'r').readline())
         activity_sheet: pygsheets = GST.GSTSheet.wks1
-        sheet_df: pd.DataFrame = activity_sheet.get_as_df()
-        now_time: int = round(functions.get_time().timestamp())
+        my_id: int = int(open('./credentials/my_id.txt').read())
 
-        indicator, index, message_id, winners_id = GST.random_draw(sheet_df, now_time)
+        indicator, index, message_id, winners_id = GST.random_draw(
+            sheet_df=activity_sheet.get_as_df(),
+            now_time=round(functions.get_time().timestamp()),
+        )
 
         match indicator:
             case 0:
-                print("No active giveaway at the moment.\n")
+                pass
             case 1:
                 # Reply to the giveaway embed message
                 channel: discord.GuildChannel = self.bot.get_channel(
-                    int(open('./credentials/channel_id.txt', 'r').readline()),
+                    int(open('./credentials/channel_id.txt').read()),
                 )
                 message: discord.Message = await channel.fetch_message(
                     message_id,
@@ -77,10 +77,10 @@ class Tasks(classes.Cog_Extension):
                     addr=(index + 2, 4),
                     val=", ".join(f"{winner[0]}" for winner in winners_id),
                 )
-                print("Giveaway draw successfully ended.\n")
 
                 del channel, message, current_sht, embed
-        del activity_sheet, sheet_df, indicator, index, message_id, winners_id, my_id
+        
+        del activity_sheet, indicator, index, message_id, winners_id, my_id
 
     # Actions to perform BEFORE giveaway winner announcement
     @giveaway_announce.before_loop
