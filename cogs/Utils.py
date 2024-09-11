@@ -20,6 +20,9 @@ class Utils(classes.Cog_Extension):
     """
     Cog extension class for various server utilities
 
+    Attributes:
+        extension_list (list): All cog extensions for displaying in command
+
     Methods:
         giveaway: Launch GST GUI
         sync: Sync slash (app) commands
@@ -28,6 +31,12 @@ class Utils(classes.Cog_Extension):
         unload: Unload a cog extension
         reload: Reload a cog extension
     """
+    extension_list: list = [
+        app_commands.Choice(name=filename[:-3], value=index)
+        for index, filename in enumerate(os.listdir("./cogs"))
+        if filename.endswith(".py")
+    ]
+
     @app_commands.command(
         name="giveaway", description="Launch the Giveaway Setup Tool 開啟抽獎工具"
     )
@@ -57,13 +66,7 @@ class Utils(classes.Cog_Extension):
     @app_commands.command(
         name="load", description="Load cogs extension 載入cogs附加元件"
     )
-    @app_commands.choices(
-        extensions=[
-            app_commands.Choice(name=filename[:-3], value=index)
-            for index, filename in enumerate(os.listdir("./cogs"))
-            if filename.endswith(".py")
-        ]
-    )
+    @app_commands.choices(extensions=extension_list)
     async def load(
         self, interaction: discord.Interaction, extensions: app_commands.Choice[int]
     ) -> None:
@@ -76,13 +79,7 @@ class Utils(classes.Cog_Extension):
     @app_commands.command(
         name="unload", description="Unload cogs extension 卸載cogs附加元件"
     )
-    @app_commands.choices(
-        extensions=[
-            app_commands.Choice(name=filename[:-3], value=index)
-            for index, filename in enumerate(os.listdir("./cogs"))
-            if filename.endswith(".py")
-        ]
-    )
+    @app_commands.choices(extensions=extension_list)
     async def unload(
         self, interaction: discord.Interaction, extensions: app_commands.Choice[int]
     ) -> None:
@@ -95,13 +92,7 @@ class Utils(classes.Cog_Extension):
     @app_commands.command(
         name="reload", description="Reload cogs extension 重新載入cogs附加元件"
     )
-    @app_commands.choices(
-        extensions=[
-            app_commands.Choice(name=filename[:-3], value=index)
-            for index, filename in enumerate(os.listdir("./cogs"))
-            if filename.endswith(".py")
-        ]
-    )
+    @app_commands.choices(extensions=extension_list)
     async def reload(
         self, interaction: discord.Interaction, extensions: app_commands.Choice[int]
     ) -> None:
