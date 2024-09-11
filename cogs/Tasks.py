@@ -26,7 +26,7 @@ class Tasks(classes.Cog_Extension):
     async def giveaway_announce(self) -> None:
         # Draw the active giveaway winner(s)
         print("\nAttempting to draw giveaway winner(s)...\n")
-        my_id: int = int(open('./credentials/my_id.txt', 'r').readline())
+        my_id: int = int(open('./credentials/my_id.txt').read())
         activity_sheet: pygsheets = GST.GSTSheet.wks1
         sheet_df: pd.DataFrame = activity_sheet.get_as_df()
         now_time: int = round(functions.get_time().timestamp())
@@ -39,7 +39,7 @@ class Tasks(classes.Cog_Extension):
             case 1:
                 # Reply to the giveaway embed message
                 channel: discord.GuildChannel = self.bot.get_channel(
-                    int(open('./credentials/channel_id.txt', 'r').readline()),
+                    int(open('./credentials/channel_id.txt').read()),
                 )
                 message: discord.Message = await channel.fetch_message(
                     message_id,

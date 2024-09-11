@@ -45,10 +45,7 @@ def createEmbed(name, prize, num, time) -> tuple[discord.Embed, int]:
         color=discord.Color.from_str("#e2ab55"),
     )
     embed.set_thumbnail(
-        url=(
-            "https://static.wikia.nocookie.net/warframe/images/e/e7/"
-            "PlatinumLarge.png/revision/latest?cb=20130728181159"
-        ),
+        url=open('./credentials/plat_url.txt').read(),
     )
     embed.add_field(
         name="End time 結束時間: ",
@@ -78,13 +75,13 @@ def checker(
     current_sht: pygsheets.Worksheet,
     embed: discord.Embed,
 ) -> discord.Embed:
-    id_list: np.ndarray = np.array(current_sht.get_all_values())
+    id_array: np.ndarray = np.array(current_sht.get_all_values())
     embed.set_field_at(
         index=2,
         name="Entries 參加人數",
-        value=id_list.shape[0] - 1,
+        value=id_array.shape[0] - 1,
     )
-    del id_list
+    del id_array
     return embed
 
 
@@ -117,8 +114,7 @@ def random_draw(
         )
         winners_id: np.ndarray = sheet_df.sample(n=num_winners).values
         # Assign the giveaway as 0 (inactive)
-        sheet: pygsheets = GSTSheet.wks1
-        sheet.update_value(addr=(index + 2, 6), val=0)
+        GSTSheet.wks1.update_value(addr=(index + 2, 6), val=0)
 
         del activity, sheet, sheet_df, num_winners
         return 1, index, message_id, winners_id
@@ -189,7 +185,7 @@ class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
             embed=embed,
             view=view,
         )
-        message: discord.InteractionMessage = await interaction.original_response()
+        message = await interaction.original_response()
         setattr(sheet, "message", message)
         setattr(sheet, "name", self.name)
         setattr(sheet, "prize", self.prize)
@@ -274,7 +270,7 @@ GST google sheet database
 
 class GSTSheet:
     # Load the worksheet as a new tab for storage
-    url: str = str(open('./credentials/url.txt', 'r').readline())
+    url: str = open('./credentials/sheet_url.txt').read()
     gc: pygsheets = pygsheets.authorize(
         service_account_file='./credentials/GSTcredentials.json',
     )
