@@ -67,7 +67,7 @@ class Tasks(classes.Cog_Extension):
                 embed.set_field_at(
                     index=1,
                     name="Winner(s) 得獎者",
-                    value="&".join(f"<@{winner[0]}>" for winner in winners_id),
+                    value=" & ".join(f"<@{winner[0]}>" for winner in winners_id),
                     inline=False,
                 )
                 await message.edit(embed=embed, view=None)

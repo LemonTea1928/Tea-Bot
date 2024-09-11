@@ -32,15 +32,6 @@ class Utils(classes.Cog_Extension):
         )
 
 
-    @app_commands.command(name="cmd", description="Display all commands")
-    async def cmd(self, interaction: discord.Interaction) -> None:
-        embed = discord.Embed(
-            title="Available commands:",
-            description=[cmd.name for cmd in self.bot.tree.walk_commands()],
-        )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
-
-
     @app_commands.command(
         name="help", description="Show available bot commands 檢視可用的bot指令"
     )

@@ -5,27 +5,30 @@ import discord
 from discord.ext import commands
 
 
-"""
-Current time retriever
-"""
-
-
 def get_time() -> datetime.datetime:
-    time_zone: datetime.timezone = datetime.timezone(
-        offset=datetime.timedelta(hours=8),
-        name="utc",
+    """Retrieve current time, returns datetime.datetime object"""
+    return datetime.datetime.now(
+        tz=datetime.timezone(offset=datetime.timedelta(hours=8), name="utc")
     )
-    return datetime.datetime.now(tz=time_zone)
-
-
-"""
-Help embed creator
-"""
 
 
 def create_help_embed(
     bot: commands.Bot, command: typing.Optional[str] = None
 ) -> discord.Embed:
+    """Create help embed when the command '/help' is called
+    a. If no command is typed in after '/help' then show all available commands
+    b. If the command typed in matches one in existing command list then
+    output its respective description
+    c. If the command typed in doesn't match any existing ones then prompt the
+    user that the command is not found
+
+    Args:
+        bot (Bot): The bot object
+        command (Optional[str]): The command (if exists) typed in
+    
+    Returns:
+        help_embed (Embed): 
+    """
     help_embed: discord.Embed = discord.Embed(
         title="🍵 Tea Bot Command Helper 指令助手 :palm_up_hand:",
     )

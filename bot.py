@@ -1,9 +1,6 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-To-do:
-1. (Done) Ability to fetch and update giveaway message after bot restart
-2. (Doing) Host bot
-3. (Done) Allow only two players to click on Tic Tac Toe in each game session
+                                Tea Bot - By nighttea_wf
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 import core.GST as GST
