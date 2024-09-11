@@ -51,7 +51,7 @@ def createEmbed(name, prize, num, time) -> tuple[discord.Embed, int]:
         title=f"{name}",
         description=f"{prize}",
         timestamp=now_time,
-        color=discord.Color.from_str("#e2ab55"),
+        color=discord.Color.from_str("#ffa500"),
     )
     embed.set_thumbnail(url=open('./credentials/plat_url.txt').read())
     embed.add_field(
