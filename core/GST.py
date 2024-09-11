@@ -19,10 +19,7 @@ Giveaway end time calculator
 """
 
 
-def get_end_time(
-    now_time: datetime.datetime,
-    time: discord.ui.TextInput,
-) -> int:
+def get_end_time(now_time: datetime.datetime, time: discord.ui.TextInput) -> int:
     time2float: float = float(time.value)
     end_time: datetime.datetime = now_time + datetime.timedelta(days=time2float)
     del time2float
@@ -44,9 +41,7 @@ def createEmbed(name, prize, num, time) -> tuple[discord.Embed, int]:
         timestamp=now_time,
         color=discord.Color.from_str("#e2ab55"),
     )
-    embed.set_thumbnail(
-        url=open('./credentials/plat_url.txt').read(),
-    )
+    embed.set_thumbnail(url=open('./credentials/plat_url.txt').read())
     embed.add_field(
         name="End time 結束時間: ",
         value=f"<t:{end_time}:f>",
@@ -71,10 +66,7 @@ Giveaway entries checker
 """
 
 
-def checker(
-    current_sht: pygsheets.Worksheet,
-    embed: discord.Embed,
-) -> discord.Embed:
+def checker(current_sht: pygsheets.Worksheet, embed: discord.Embed) -> discord.Embed:
     id_array: np.ndarray = np.array(current_sht.get_all_values())
     embed.set_field_at(
         index=2,
@@ -91,8 +83,7 @@ Giveaway random drawer
 
 
 def random_draw(
-    sheet_df: pd.DataFrame,
-    now_time: int,
+    sheet_df: pd.DataFrame, now_time: int
 ) -> tuple[int, int, int, np.ndarray]:
     activity: pd.DataFrame = sheet_df.drop(
         labels=["Giveaway name", "Giveaway prize"],
@@ -104,21 +95,23 @@ def random_draw(
     ]
     for row in activity.itertuples():
         index, message_id, num_winners = row[0], row[1], row[2]
+
         # Go to the corresponding giveaway worksheet
-        sheet: pygsheets = GSTSheet.sht.worksheet_by_title(
-            title=f"{message_id}",
-        )
+        sheet: pygsheets = GSTSheet.sht.worksheet_by_title(title=f"{message_id}")
+
         # Only extract user ID & winner(s) using sample() function
-        sheet_df: pd.DataFrame = sheet.get_as_df().select_dtypes(
-            include=["integer"],
-        )
+        sheet_df: pd.DataFrame = sheet.get_as_df().select_dtypes(include=["integer"])
         winners_id: np.ndarray = sheet_df.sample(n=num_winners).values
+
         # Assign the giveaway as 0 (inactive)
-        GSTSheet.wks1.update_value(addr=(index + 2, 6), val=0)
+        GSTSheet.wks1.update_value(addr=(index + 2, 6), val=0,)
 
         del activity, sheet, sheet_df, num_winners
+
         return 1, index, message_id, winners_id
+
     del activity
+
     return 0, 0, 0, np.array([0])
 
 
@@ -132,9 +125,7 @@ def end_time_retrieve(sheet_df: pd.DataFrame) -> list:
         offset=datetime.timedelta(hours=8),
         name="utc",
     )
-    sheet_df: pd.DataFrame = sheet_df.select_dtypes(
-        include=["integer"],
-    )
+    sheet_df: pd.DataFrame = sheet_df.select_dtypes(include=["integer"])
     sheet_df: pd.DataFrame = sheet_df[sheet_df["1 (Active) | 0 (Inactive)"] == 1]
     end_time_list = [
         datetime.datetime.fromtimestamp(day, time_zone).time()
@@ -216,7 +207,7 @@ class GSTButtonView(discord.ui.View):
         interaction: discord.Interaction,
         button: discord.ui.Button,
     ) -> None:
-        # Retrieve the user's name & ID, and message ID on click and put them on the sheet
+        # Retrieve the user's name & ID, and message ID on click
         user: discord.User = interaction.user
         values: list[str, str] = [[user.name, f"{user.id}"]]
         message: discord.Message = interaction.message
