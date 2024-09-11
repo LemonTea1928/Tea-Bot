@@ -24,6 +24,8 @@ class TicTacToeButton(discord.ui.Button["TicTacToe"]):
         )
         self.x = x
         self.y = y
+        self.o_id: int = o_id
+        self.x_id: int = x_id
         self.session_id: int = session_id
         self.id_list: list[int] = [o_id, x_id]
 
@@ -31,18 +33,18 @@ class TicTacToeButton(discord.ui.Button["TicTacToe"]):
         self.interaction: discord.Interaction = interaction
         if interaction.user.id not in self.id_list:
             await interaction.response.send_message(
-                content="❗ You can't play in this session!\n"
-                "❗ 你不能玩這場遊戲！",
+                content="❗ You can't play in this session!\n❗ 你不能玩這場遊戲！",
                 ephemeral=True,
             )
             return
+
         assert self.view is not None
         view: TicTacToe = self.view
         state: int = view.board[self.y][self.x]
         if state in (view.X, view.O):
             return
 
-        if view.current_player == view.X:
+        if (view.current_player == view.X) and (interaction.user.id == self.x_id):
             self.style = discord.ButtonStyle.danger
             self.label = "X"
             self.disabled = True
@@ -50,7 +52,8 @@ class TicTacToeButton(discord.ui.Button["TicTacToe"]):
             view.current_player = view.O
             content = f"(ID: {self.session_id}) Now it's O's turn 現在是 O 的回合"
             delete_after = None
-        else:
+
+        elif (view.current_player == view.O) and (interaction.user.id == self.o_id):
             self.style = discord.ButtonStyle.success
             self.label = "O"
             self.disabled = True
@@ -58,6 +61,13 @@ class TicTacToeButton(discord.ui.Button["TicTacToe"]):
             view.current_player = view.X
             content = f"(ID: {self.session_id}) Now it's X's turn 現在是 X 的回合"
             delete_after = None
+
+        else:
+            await interaction.response.send_message(
+                content="❗ You can't impersonate others!\n❗ 你不能冒充其他人！",
+                ephemeral=True,
+            )
+            return
 
         winner = view.check_board_winner()
         if winner is not None:
@@ -76,9 +86,7 @@ class TicTacToeButton(discord.ui.Button["TicTacToe"]):
 
             view.stop()
 
-            Games.Games.ttt_sessions[self.session_id - 1].update(
-                {self.session_id: 0},
-            )
+            Games.Games.ttt_sessions[self.session_id - 1].update({self.session_id: 0})
 
         await interaction.response.edit_message(
             content=content,

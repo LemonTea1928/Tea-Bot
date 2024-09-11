@@ -20,9 +20,6 @@ intents.message_content = True
 bot: commands.Bot = commands.Bot(command_prefix="Do ", intents=intents)
 
 
-
-
-
 @bot.event
 async def on_ready() -> None:
     """Display the bot's activity & status after initialization
