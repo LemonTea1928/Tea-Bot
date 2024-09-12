@@ -20,15 +20,13 @@ def get_end_time(now_time: datetime.datetime, time: discord.ui.TextInput) -> int
     Calculate a giveaway's end time
     
     Args:
-        now_time: Current time
-        time: GUI input
+        now_time (datetime): Current time
+        time (TextInput -> str): GUI input for giveaway duration (in days)
     
     Returns:
-        int: round(end_time.timestamp())
+        round(end_time.timestamp()) (int): Rounded float timestamp
     """
-    time2float: float = float(time.value)
-    end_time: datetime.datetime = now_time + datetime.timedelta(days=time2float)
-    del time2float
+    end_time: datetime.datetime = now_time + datetime.timedelta(days=float(time.value))
     return round(end_time.timestamp())
 
 
@@ -48,7 +46,7 @@ def createEmbed(name, prize, num, time) -> tuple[discord.Embed, int]:
     """
     now_time: datetime.datetime = functions.get_time()
     end_time: int = get_end_time(now_time=now_time, time=time)
-
+    
     embed: discord.Embed = discord.Embed(
         title=f"{name}",
         description=f"{prize}",
@@ -79,6 +77,9 @@ def checker(current_sht: pygsheets.Worksheet, embed: discord.Embed) -> discord.E
     """
     Check the number of entries in a giveaway
     
+    1.  Retrieve all cells in a particular giveaway worksheet as an array
+    2.  Update the number of its rows (id_array.shape[0]) to embed's "Entries"
+    
     Args:
         current_sht (Worksheet): Worksheet with the giveaway message ID as title
         embed (Embed): The corresponding giveaway embed
@@ -101,42 +102,43 @@ def random_draw(
 ) -> tuple[int, int, int, np.ndarray]:
     """
     Randomly draw winner(s) from a giveaway
-
+    
+    1.  Extract the activity board as a DataFrame, filter out text columns and
+        giveaways that are active and ending
+    2.  If the DataFrame is empty then return a tuple with indicator = 0
+    3.  If not empty then draw winner(s) and return a tuple with indicator = 1
+    
     Args:
         sheet_df (DataFrame): The activity board worksheet in DataFrame format
     
     Returns:
-        tuple(1, index, message_id, winners_id) if active giveaway & has ended
-        tuple(0, 0, 0, np.array[0]) if inactive/ (active & has ended) giveaway
+        If active giveaway & has ended: (1, index, message_id, winners_id) 
+        If inactive/ (active & has ended) giveaway: (0, 0, 0, np.array[0])
     """
     activity: pd.DataFrame = sheet_df.drop(
-        labels=["Giveaway name", "Giveaway prize"], axis=1
+        labels=["Giveaway name", "Giveaway prize"],
+        axis=1,
     )
     activity: pd.DataFrame = activity[
         (activity["1 (Active) | 0 (Inactive)"] == 1)
         & (activity["Ending time"] <= now_time)
     ]
-
+    
+    if activity.empty:
+        del activity
+        return 0, 0, 0, np.array([0])
+    
     for row in activity.itertuples():
         index, message_id, num_winners = row[0], row[1], row[2]
-
-        # Go to the corresponding giveaway worksheet
+        
         sheet: pygsheets = GSTSheet.sht.worksheet_by_title(title=f"{message_id}")
-
-        # Only extract user ID & winner(s) using sample() function
         sheet_df: pd.DataFrame = sheet.get_as_df().select_dtypes(include=["integer"])
-        winners_id: np.ndarray = sheet_df.sample(n=num_winners).values
-
-        # Assign the giveaway as 0 (inactive)
+        winners_id: np.ndarray = sheet_df.sample(n=num_winners).to_numpy()
+        
         GSTSheet.wks1.update_value(addr=(index + 2, 6), val=0,)
-
+        
         del activity, sheet, sheet_df, num_winners
-
         return 1, index, message_id, winners_id
-
-    del activity
-
-    return 0, 0, 0, np.array([0])
 
 
 def end_time_retrieve(sheet_df: pd.DataFrame) -> list:
@@ -149,16 +151,18 @@ def end_time_retrieve(sheet_df: pd.DataFrame) -> list:
     Returns:
         end_time_list (list): A list containing all active giveaway end time
     """
-    time_zone: datetime.timezone = datetime.timezone(
-        offset=datetime.timedelta(hours=8),
+    time_zone = datetime.timezone(
+        offset=datetime.timedelta(hours=8), 
         name="utc",
     )
+    
     sheet_df: pd.DataFrame = sheet_df.select_dtypes(include=["integer"])
     sheet_df: pd.DataFrame = sheet_df[sheet_df["1 (Active) | 0 (Inactive)"] == 1]
     end_time_list = [
         datetime.datetime.fromtimestamp(day, time_zone).time()
         for day in sheet_df["Ending time"].tolist()
     ]
+    
     del time_zone, sheet_df
     return end_time_list
 
@@ -166,7 +170,7 @@ def end_time_retrieve(sheet_df: pd.DataFrame) -> list:
 class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
     """
     Interactive GUI class for easy giveaway setup
-
+    
     Attributes:
         name (discord.ui.TextInput -> str): Name of the giveaway
         prize (discord.ui.TextInput -> str): Prize for the giveaway
@@ -194,34 +198,30 @@ class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
         min_length=1,
         max_length=50,
     )
-
+    
     async def on_submit(self, interaction: discord.Interaction) -> None:
         """
         Built-in discord.py method for GUI submit detection, on submit:
-
+        
         1.  Create an embed containing the giveaway info
         2.  Create a view object containing a button to join the giveaway
         3.  Create a Google Sheet (worksheet) object as a database
         4.  Send a Discord message containing the embed & view
-
+        
         Args:
             interaction: The action when the user presses 'Submit' button
         
         Returns:
             None
         """
-        embed, end_time = createEmbed(
-            self.name,
-            self.prize,
-            self.num,
-            self.time,
-        )
+        embed, end_time = createEmbed(self.name, self.prize, self.num, self.time)
         view = GSTButtonView()
         sheet = GSTSheet()
         await interaction.response.send_message(
             embed=embed,
             view=view,
         )
+        
         message = await interaction.original_response()
         setattr(sheet, "message", message)
         setattr(sheet, "name", self.name)
@@ -229,14 +229,14 @@ class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
         setattr(sheet, "num", self.num)
         setattr(sheet, "end_time", end_time)
         sheet.sheet_initialize()
-
+        
         del end_time, embed, view, sheet, message
 
 
 class GSTButtonView(discord.ui.View):
     """
     A discord.ui.View subclass containing a button to join the giveaway
-
+    
     Args:
         wks (pygsheets): The Google Sheet database template for copying
         timeout: None
@@ -244,7 +244,7 @@ class GSTButtonView(discord.ui.View):
     def __init__(self) -> None:
         self.wks: pygsheets = GSTSheet.wks
         super().__init__(timeout=None)
-
+    
     @discord.ui.button(
         style=discord.ButtonStyle.green,
         custom_id="join_giveaway_button",
@@ -254,7 +254,7 @@ class GSTButtonView(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ) -> None:
         """Built-in discord.py method for button callback on click, on click:
-
+        
         1.  Retrieve user name & ID, giveaway message, and the message embed
         2.  Try locating the worksheet linking to the giveaway, if none is found
             then send a message warning it doesn't exist or has ended
@@ -265,7 +265,7 @@ class GSTButtonView(discord.ui.View):
         
         (In 3 & 4 whenever a user clicks the button, the embed will be updated
         with the latest number of entries from the database)
-
+        
         Args:
             interaction: The action when the user presses 'join_giveaway_button'
             button: The 'join_giveaway_button'
@@ -277,8 +277,7 @@ class GSTButtonView(discord.ui.View):
         values: list[list[str]] = [[user.name, f"{user.id}"]]
         message: discord.Message = interaction.message
         embed: discord.Embed = message.embeds[0]
-
-        # Check if the sheet with corresponding message exists
+        
         try:
             current_sht: pygsheets = GSTSheet.sht.worksheet_by_title(
                 title=f"{message.id}",
@@ -294,8 +293,7 @@ class GSTButtonView(discord.ui.View):
             )
             del user, values, message, embed
             return
-
-        # Check if the user has joined the corresponding giveaway
+        
         if f"{user.id}" in current_sht_array:
             await interaction.response.send_message(
                 content="❗ You've already joined! 你已經參加了！",
@@ -303,10 +301,9 @@ class GSTButtonView(discord.ui.View):
             )
             await message.edit(embed=checker(current_sht, embed))
             time.sleep(0.5)
-            del (user, values, message, embed, current_sht, current_sht_array)
+            del user, values, message, embed, current_sht, current_sht_array
             return
-
-        # Add the user to the sheet database for the giveaway random draw
+        
         try:
             current_sht.append_table(values=values)
         except Exception:
@@ -315,14 +312,14 @@ class GSTButtonView(discord.ui.View):
                 ephemeral=True,
             )
             await message.edit(embed=checker(current_sht, embed))
-            del (user, values, message, embed, current_sht, current_sht_array)
+            del user, values, message, embed, current_sht, current_sht_array
             return
 
 
 class GSTSheet:
     """
     Google Sheet database class for individual tracking of giveaways
-
+    
     Attributes:
         url (str): The spreadsheet file URL on Google Drive
         gc (pygsheets.client): Google Sheet API client
@@ -340,18 +337,17 @@ class GSTSheet:
     sht: pygsheets = gc.open_by_url(url)
     wks: pygsheets = sht.worksheet_by_title("Template")
     wks1: pygsheets = sht.worksheet_by_title("Activity board")
-
+    
     def sheet_initialize(self) -> None:
         """
         Method for creating a new worksheet when a giveaway is created from GUI
-
+        
         1.  Create a nested list (representative of a spreadsheet cell) containing
             all the giveaway information; the integer 1 means the giveaway is active
         2.  Add a new worksheet with the giveaway message ID as title, by copying
             the template worksheet
-        3.  Add the nested list to the last row of the activity board, ignoring
-            unwanted exception errors upon insertion
-
+        3.  Add the nested list to the last row of the activity board
+        
         Returns:
             None
         """
@@ -365,15 +361,9 @@ class GSTSheet:
                 1,
             ]
         ]
-        self.sht.add_worksheet(
-            title=values[0][0],
-            src_worksheet=self.wks,
-        )
-        try:
-            self.wks1.append_table(values=values)
-        except Exception:
-            pass
-
+        self.sht.add_worksheet(title=values[0][0], src_worksheet=self.wks)
+        self.wks1.append_table(values=values)
+        
         del values
 
 

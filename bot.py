@@ -14,7 +14,6 @@ import discord
 from discord.ext import commands
 
 
-token: str = loads(Path("credentials/token.json").read_text())["token"]
 intents: discord.Intents = discord.Intents.all()
 intents.message_content = True
 bot: commands.Bot = commands.Bot(command_prefix="Do ", intents=intents)
@@ -67,7 +66,9 @@ async def load_extensions():
 async def main():
     async with bot:
         await load_extensions()
-        await bot.start(token=token)
+        await bot.start(
+            token=loads(Path("credentials/token.json").read_text())["token"],
+        )
 
 
 if __name__ == "__main__":
