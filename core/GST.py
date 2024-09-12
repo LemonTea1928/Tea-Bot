@@ -16,7 +16,8 @@ import numpy as np
 
 
 def get_end_time(now_time: datetime.datetime, time: discord.ui.TextInput) -> int:
-    """Calculate a giveaway's end time
+    """
+    Calculate a giveaway's end time
     
     Args:
         now_time: Current time
@@ -32,7 +33,8 @@ def get_end_time(now_time: datetime.datetime, time: discord.ui.TextInput) -> int
 
 
 def createEmbed(name, prize, num, time) -> tuple[discord.Embed, int]:
-    """Create a giveaway embed upon submission of the GUI
+    """
+    Create a giveaway embed upon submission of the GUI
     
     Args:
         name (TextInput -> str): Name of the giveaway
@@ -74,7 +76,8 @@ def createEmbed(name, prize, num, time) -> tuple[discord.Embed, int]:
 
 
 def checker(current_sht: pygsheets.Worksheet, embed: discord.Embed) -> discord.Embed:
-    """Check the number of entries in a giveaway
+    """
+    Check the number of entries in a giveaway
     
     Args:
         current_sht (Worksheet): Worksheet with the giveaway message ID as title
@@ -96,7 +99,8 @@ def checker(current_sht: pygsheets.Worksheet, embed: discord.Embed) -> discord.E
 def random_draw(
     sheet_df: pd.DataFrame, now_time: int
 ) -> tuple[int, int, int, np.ndarray]:
-    """Randomly draw winner(s) from a giveaway
+    """
+    Randomly draw winner(s) from a giveaway
 
     Args:
         sheet_df (DataFrame): The activity board worksheet in DataFrame format
@@ -136,7 +140,8 @@ def random_draw(
 
 
 def end_time_retrieve(sheet_df: pd.DataFrame) -> list:
-    """Retrieve active giveaway end_time (formatted as datetime.time)
+    """
+    Retrieve active giveaway end_time (formatted as datetime.time)
     
     Args:
         sheet_df (DataFrame): The activity board worksheet in DataFrame format
@@ -191,7 +196,9 @@ class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
     )
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
-        """Built-in discord.py method for GUI submit detection, on submit:
+        """
+        Built-in discord.py method for GUI submit detection, on submit:
+
         1.  Create an embed containing the giveaway info
         2.  Create a view object containing a button to join the giveaway
         3.  Create a Google Sheet (worksheet) object as a database
@@ -247,6 +254,7 @@ class GSTButtonView(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ) -> None:
         """Built-in discord.py method for button callback on click, on click:
+
         1.  Retrieve user name & ID, giveaway message, and the message embed
         2.  Try locating the worksheet linking to the giveaway, if none is found
             then send a message warning it doesn't exist or has ended
@@ -254,7 +262,8 @@ class GSTButtonView(discord.ui.View):
             has joined it already, otherwise warn the user they have joined
         4.  If the user hasn't joined the giveaway then add their ID to database
             and prompt them they have successfully joined
-        (In 3 & 4, whenever a user clicks the button, the embed will be updated
+        
+        (In 3 & 4 whenever a user clicks the button, the embed will be updated
         with the latest number of entries from the database)
 
         Args:
@@ -333,13 +342,15 @@ class GSTSheet:
     wks1: pygsheets = sht.worksheet_by_title("Activity board")
 
     def sheet_initialize(self) -> None:
-        """Method for creating a new worksheet when a giveaway is created from GUI
+        """
+        Method for creating a new worksheet when a giveaway is created from GUI
+
         1.  Create a nested list (representative of a spreadsheet cell) containing
-        all the giveaway information; the integer 1 means the giveaway is active
+            all the giveaway information; the integer 1 means the giveaway is active
         2.  Add a new worksheet with the giveaway message ID as title, by copying
-        the template worksheet
+            the template worksheet
         3.  Add the nested list to the last row of the activity board, ignoring
-        unwanted exception errors upon insertion
+            unwanted exception errors upon insertion
 
         Returns:
             None

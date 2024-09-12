@@ -22,15 +22,14 @@ bot: commands.Bot = commands.Bot(command_prefix="Do ", intents=intents)
 
 @bot.event
 async def on_ready() -> None:
-    """Display the bot's activity & status after initialization
+    """
+    Display the bot's activity & status after initialization
 
     Returns:
         None
     """
     activity: discord.Activity = discord.Activity(
-        type=discord.ActivityType.custom,
-        name="custom",
-        state="WIP 製作中",
+        type=discord.ActivityType.custom, name="custom", state="WIP 製作中"
     )
     await bot.change_presence(status=discord.Status.online, activity=activity)
     print(

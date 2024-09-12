@@ -28,7 +28,9 @@ class Games(classes.Cog_Extension):
         description="Launch the Tic Tac Toe game 開啟井字過三關遊戲",
     )
     async def tictactoe(self, cmd_interaction: discord.Interaction) -> None:
-        """Launch the Tic Tac Toe game (if available)
+        """
+        Launch the Tic Tac Toe game (if available)
+        
         1.  If all game sessions are occupied, prompt the user to check later
         2.  If there is an available session then allocate one. Free up the
             session after no interactions on the PlayerSelectButton for

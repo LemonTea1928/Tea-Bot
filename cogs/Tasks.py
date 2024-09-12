@@ -40,6 +40,7 @@ class Tasks(classes.Cog_Extension):
     @tasks.loop(minutes=1)
     async def giveaway_announce(self) -> None:
         """Randomly draw and announce a giveaway's winner(s)
+        
         1.  Retrieve the nearest ending giveaway from activity board and randomly draw
             winner(s) using GST.random_draw() function, returns a tuple containing an
             indicator, an index, a message ID, and winner(s) ID
