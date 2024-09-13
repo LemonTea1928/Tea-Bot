@@ -9,15 +9,9 @@ from collections.abc import Generator
 import discord
 
 
-global FALSE_GRAY; FALSE_GRAY: str = "gray"
-global CORRECT_GREEN; CORRECT_GREEN: str = "green"
-global CHANGE_YELLOW; CHANGE_YELLOW: str = "yellow"
-
-
 def read_one_word() -> Generator[str, None, None]:
     """
-    Open the 'popular words' dictionary text file and return a generator
-    containing a randomly chosen 5-letter word
+    Open the 'popular words' text file and randomly draw a word
     
     Returns:
         Generator (str): Generator yielding a randomly chosen 5-letter word
@@ -26,13 +20,41 @@ def read_one_word() -> Generator[str, None, None]:
         yield random.choice(words.readlines())
 
 
+def check_word(word :str, guessed_word: str) -> list[tuple[str]]:
+    """
+    Check if the guessed word is a correct answer, encode a specific colour
+    for each letter in it where green is correct letter and position; yellow
+    is correct word but incorrect position; gray is incorrect letter and
+    position
+
+    Args:
+        word (str): The randomly-chosen word as the answer
+        guessed_word (str): The user-guessed word for checking
+
+    Returns:
+        List: A list having 5 tuples, each encoding a colour for a character
+    """
+    CORRECT_GREEN: str = "green"
+    CHANGE_YELLOW: str = "yellow"
+    INCORRECT_GRAY: str = "gray"
+    
+    if word is guessed_word:
+        return list(zip([CORRECT_GREEN for _ in range(5)], [*word]))
+    
+    truth_list: list[int] = [0 for letter in guessed_word if letter not in word]
+    if len(truth_list) == 5:
+        return list(zip([INCORRECT_GRAY for _ in range(5)], [*word]))
+    
+    truth_list: list[int] = [
+        index
+        for index, character in enumerate(guessed_word)
+        if character not in word
+    ]
+
+
 def get_word_emoji(colour: str, character: str) -> Generator[str, None, None]:
     with open("./miscellaneous/wordle_emojis.py") as emojis:
         yield 
-
-
-def check_word():
-    return
 
 
 class StartView(discord.ui.View):
@@ -61,7 +83,7 @@ class StartView(discord.ui.View):
         Wordle canvas and two buttons (guess & abandon) to edit the message
         """
         await interaction.response.edit_message(
-            content=f"{"◻️" * 5}\n" * 6,
+            content=f"{"◻️" * 5}\n" * 6 + self.word,
             view=GameView(self.cmd_interaction, self.word),
         )
 
@@ -144,8 +166,8 @@ class GUI(discord.ui.Modal, title="😤 Guess it! 猜吧！"):
         super().__init__()
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
-        await interaction.response.send_message(
-            
+        await interaction.response.edit_message(
+
         )
 
 
