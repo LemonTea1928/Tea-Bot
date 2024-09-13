@@ -3,8 +3,9 @@
                                     Cog - Games extension
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-import core.TTT as TTT
 import core.classes as classes
+import core.TTT as TTT
+import core.Wordle as Wordle
 
 import discord
 from discord import app_commands
@@ -57,6 +58,17 @@ class Games(classes.Cog_Extension):
                 cmd_interaction=cmd_interaction,
                 session_id=session_id,
             ),
+        )
+    
+    @app_commands.command(
+        name="wordle",
+        description="Launch the Wordle game 開啟 Wordle 猜字遊戲",
+    )
+    async def wordle(self, cmd_interaction: discord.Interaction) -> None:
+        await cmd_interaction.response.send_message(
+            content="🤔 Wordle!",
+            view=Wordle.StartView(cmd_interaction),
+            ephemeral=True,
         )
 
 

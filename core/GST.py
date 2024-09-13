@@ -169,7 +169,7 @@ def end_time_retrieve(sheet_df: pd.DataFrame) -> list:
 
 class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
     """
-    Interactive GUI class for easy giveaway setup
+    Interactive GUI subclass for easy giveaway setup
     
     Attributes:
         name (discord.ui.TextInput -> str): Name of the giveaway
@@ -177,23 +177,23 @@ class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
         num (discord.ui.TextInput -> int): Number of winner(s) of the giveaway
         time (discord.ui.TextInput -> float): Duration of the giveaway in day(s)
     """
-    name: discord.ui.TextInput = discord.ui.TextInput(
+    namet = discord.ui.TextInput(
         label="Name 名稱",
         min_length=1,
         max_length=50,
     )
-    prize: discord.ui.TextInput = discord.ui.TextInput(
+    prize = discord.ui.TextInput(
         label="Prize description 獎品描述",
         min_length=1,
         max_length=100,
         style=discord.TextStyle.paragraph,
     )
-    num: discord.ui.TextInput = discord.ui.TextInput(
+    num = discord.ui.TextInput(
         label="Number of winner(s) 得獎人數",
         min_length=1,
         max_length=50,
     )
-    time: discord.ui.TextInput = discord.ui.TextInput(
+    time = discord.ui.TextInput(
         label="Duration (in days) 時長（日）",
         min_length=1,
         max_length=50,
