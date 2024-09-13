@@ -192,7 +192,7 @@ class GUI(discord.ui.Modal, title="😤 Guess it! 猜吧！"):
         super().__init__()
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
-        if not is_valid(self.guessed_word):
+        if not is_valid(str(self.guessed_word)):
             await interaction.response.send_message(
                 content="❌ Invalid word! 無效字詞！",
                 delete_after=5.0,
