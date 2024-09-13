@@ -20,19 +20,38 @@ def read_one_word() -> Generator[str, None, None]:
         yield random.choice(words.readlines())
 
 
+def is_valid(guessed_word: str) -> bool:
+    """
+    Validate if the guessed word is valid
+
+    Args:
+        guessed_word (str): The user-guessed word for checking
+
+    Returns:
+        bool: Whether the word exists or not
+    """
+    with open("./miscellaneous/wordle_all_words.txt") as all_words:
+        words = all_words.readlines()
+    
+    for word in words:
+        if guessed_word in word: return True
+    
+    return False
+
+
 def check_word(word :str, guessed_word: str) -> list[tuple[str]]:
     """
     Check if the guessed word is a correct answer, encode a specific colour
     for each letter in it where green is correct letter and position; yellow
     is correct word but incorrect position; gray is incorrect letter and
     position
-
+    
     Args:
         word (str): The randomly-chosen word as the answer
         guessed_word (str): The user-guessed word for checking
-
+    
     Returns:
-        List: A list having 5 tuples, each encoding a colour for a character
+        list: A list having 5 tuples, each encoding a colour for a letter
     """
     CORRECT_GREEN: str = "green"
     CHANGE_YELLOW: str = "yellow"
@@ -41,15 +60,22 @@ def check_word(word :str, guessed_word: str) -> list[tuple[str]]:
     if word is guessed_word:
         return list(zip([CORRECT_GREEN for _ in range(5)], [*word]))
     
-    truth_list: list[int] = [0 for letter in guessed_word if letter not in word]
-    if len(truth_list) == 5:
+    if len([1 for letter in guessed_word if letter not in word]) == 5:
         return list(zip([INCORRECT_GRAY for _ in range(5)], [*word]))
     
-    truth_list: list[int] = [
-        index
-        for index, character in enumerate(guessed_word)
-        if character not in word
-    ]
+    encoded_letters: list = []
+    for index, letter in enumerate(guessed_word):
+        if letter not in word:
+            encoded_letters.append((INCORRECT_GRAY, letter))
+            continue
+        elif letter is not word[index]:
+            encoded_letters.append((CHANGE_YELLOW, letter))
+            continue
+        elif letter is word[index]:
+            encoded_letters.append((CORRECT_GREEN, letter))
+            continue
+    
+    return encoded_letters
 
 
 def get_word_emoji(colour: str, character: str) -> Generator[str, None, None]:
@@ -166,6 +192,14 @@ class GUI(discord.ui.Modal, title="😤 Guess it! 猜吧！"):
         super().__init__()
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
+        if not is_valid(self.guessed_word):
+            await interaction.response.send_message(
+                content="❌ Invalid word! 無效字詞！",
+                delete_after=5.0,
+                ephemeral=True,
+            )
+            return
+        
         await interaction.response.edit_message(
 
         )
