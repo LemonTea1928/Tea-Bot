@@ -144,24 +144,23 @@ def check_word(word :str, guessed_word: str) -> list[tuple[str]]:
     CORRECT_GREEN: str = "green"
     CHANGE_YELLOW: str = "yellow"
     INCORRECT_GRAY: str = "gray"
-
-    if guessed_word is word:
+    
+    if guessed_word == word:
         return list(zip([CORRECT_GREEN for _ in range(5)], [*guessed_word]))
     
     if len([1 for letter in guessed_word if letter not in word]) == 5:
         return list(zip([INCORRECT_GRAY for _ in range(5)], [*guessed_word]))
     
-    encoded_letters: list = []
+    word = list(word)
+    encoded_letters: list = [(INCORRECT_GRAY, letter) for letter in guessed_word]
     for index, letter in enumerate(guessed_word):
-        if letter not in word:
-            encoded_letters.append((INCORRECT_GRAY, letter))
-            continue
-        elif letter not in word[index]:
-            encoded_letters.append((CHANGE_YELLOW, letter))
-            continue
-        elif letter in word[index]:
-            encoded_letters.append((CORRECT_GREEN, letter))
-            continue
+        if letter == word[index]:
+            encoded_letters[index] = (CORRECT_GREEN, letter)
+            word[index] = None
+    for index, letter in enumerate(guessed_word):
+        if letter in word:
+            encoded_letters[index] = (CHANGE_YELLOW, letter)
+            word[word.index(letter)] = None
     
     return encoded_letters
 
@@ -187,7 +186,7 @@ class StartView(discord.ui.View):
         self.cmd_interaction: discord.Interaction = cmd_interaction
         self.canvas: list[str] = ["◻️" * 5 for _ in range(6)]
         self.word: str = next(read_one_word()).strip()
-        super().__init__()
+        super().__init__(timeout=None)
     
     @discord.ui.button(
         label="Start 開始",
@@ -228,7 +227,7 @@ class GameView(discord.ui.View):
         self.canvas: str = canvas
         self.guess: int = guess
         self.abandon_button_clicked: bool = False
-        super().__init__()
+        super().__init__(timeout=None)
     
     @discord.ui.button(
         label="😏 Guess 猜一下",
@@ -299,12 +298,13 @@ class GUI(discord.ui.Modal, title="😤 Guess it! 猜吧！"):
         self.word: str = word
         self.canvas: str = canvas
         self.guess: int = guess
-        super().__init__()
+        super().__init__(timeout=None)
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         if not is_valid(self.guessed_word.value):
             await interaction.response.send_message(
-                content="❌ Invalid word! 無效字詞！",
+                content="❌ Invalid word! 無效字詞！\n"
+                "(This message deletes in 3s... 此訊息將在3秒內刪除...)",
                 delete_after=3.0,
                 ephemeral=True,
             )
