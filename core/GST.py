@@ -125,7 +125,6 @@ def random_draw(
     ]
     
     if activity.empty:
-        del activity
         return 0, 0, 0, np.array([0])
     
     for row in activity.itertuples():
@@ -137,7 +136,6 @@ def random_draw(
         
         GSTSheet.wks1.update_value(addr=(index + 2, 6), val=0,)
         
-        del activity, sheet, sheet_df, num_winners
         return 1, index, message_id, winners_id
 
 
@@ -163,7 +161,6 @@ def end_time_retrieve(sheet_df: pd.DataFrame) -> list:
         for day in sheet_df["Ending time"].tolist()
     ]
     
-    del time_zone, sheet_df
     return end_time_list
 
 
@@ -214,7 +211,12 @@ class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
         Returns:
             None
         """
-        embed, end_time = createEmbed(self.name, self.prize, self.num, self.time)
+        embed, end_time = createEmbed(
+            self.name,
+            self.prize,
+            self.num,
+            self.time,
+        )
         view = GSTButtonView()
         sheet = GSTSheet()
         await interaction.response.send_message(
@@ -251,7 +253,9 @@ class GSTButtonView(discord.ui.View):
         emoji="👈",
     )
     async def on_button_click(
-        self, interaction: discord.Interaction, button: discord.ui.Button
+        self,
+        interaction: discord.Interaction,
+        button: discord.ui.Button,
     ) -> None:
         """Built-in discord.py method for button callback on click, on click:
         
@@ -291,7 +295,6 @@ class GSTButtonView(discord.ui.View):
                 "這個抽獎活動不存在或已結束！",
                 ephemeral=True,
             )
-            del user, values, message, embed
             return
         
         if f"{user.id}" in current_sht_array:
@@ -300,8 +303,6 @@ class GSTButtonView(discord.ui.View):
                 ephemeral=True,
             )
             await message.edit(embed=checker(current_sht, embed))
-            time.sleep(0.5)
-            del user, values, message, embed, current_sht, current_sht_array
             return
         
         try:
@@ -312,7 +313,6 @@ class GSTButtonView(discord.ui.View):
                 ephemeral=True,
             )
             await message.edit(embed=checker(current_sht, embed))
-            del user, values, message, embed, current_sht, current_sht_array
             return
 
 

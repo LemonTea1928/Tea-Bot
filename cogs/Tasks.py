@@ -73,7 +73,7 @@ class Tasks(classes.Cog_Extension):
             int(open('./credentials/channel_id.txt').read()),
         )
         message: discord.Message = await channel.fetch_message(
-            message_id,
+            id=message_id,
         )
         await message.reply(
             "🥳 Congratulations to "
@@ -109,19 +109,6 @@ class Tasks(classes.Cog_Extension):
             val=", ".join(f"{winner[0]}" for winner in winners_id),
         )
 
-        del (
-            channel,
-            message,
-            current_sht,
-            embed,
-            activity_sheet,
-            indicator,
-            index,
-            message_id,
-            winners_id,
-            my_id,
-        )
-
 
     @giveaway_announce.before_loop
     async def before_giveaway_announce(self) -> None:
@@ -138,9 +125,6 @@ class Tasks(classes.Cog_Extension):
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Tasks(bot))
-
-
-# -------------------------------------End of code-------------------------------------
 
 
 if __name__ == "__main__":

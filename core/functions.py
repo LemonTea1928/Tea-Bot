@@ -8,12 +8,16 @@ from discord.ext import commands
 def get_time() -> datetime.datetime:
     """Retrieve current time, returns datetime.datetime object"""
     return datetime.datetime.now(
-        tz=datetime.timezone(offset=datetime.timedelta(hours=8), name="utc")
+        tz=datetime.timezone(
+            offset=datetime.timedelta(hours=8),
+            name="utc",
+        )
     )
 
 
 def create_help_embed(
-    bot: commands.Bot, command: typing.Optional[str] = None
+    bot: commands.Bot,
+    command: typing.Optional[str] = None,
 ) -> discord.Embed:
     """Create help embed when the command '/help' is called
     a. If no command is typed in after '/help' then show all available commands
