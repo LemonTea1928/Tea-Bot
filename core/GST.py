@@ -177,7 +177,7 @@ class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
         num (discord.ui.TextInput -> int): Number of winner(s) of the giveaway
         time (discord.ui.TextInput -> float): Duration of the giveaway in day(s)
     """
-    namet = discord.ui.TextInput(
+    name = discord.ui.TextInput(
         label="Name 名稱",
         min_length=1,
         max_length=50,
