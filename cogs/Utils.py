@@ -24,48 +24,18 @@ class Utils(classes.Cog_Extension):
         extension_list (list): All cog extensions for displaying in command
 
     Methods:
-        giveaway: Launch GST GUI
-        sync: Sync slash (app) commands
-        help: Slash command replacement for the text counterpart
         load: Load a cog extension
         unload: Unload a cog extension
         reload: Reload a cog extension
+        giveaway: Launch GST GUI
+        sync: Sync slash (app) commands
+        help: Slash command replacement for the text counterpart
     """
     extension_list: list = [
         app_commands.Choice(name=filename[:-3], value=index)
         for index, filename in enumerate(os.listdir("./cogs"))
         if filename.endswith(".py")
     ]
-
-    @app_commands.command(
-        name="giveaway",
-        description="Launch the Giveaway Setup Tool 開啟抽獎工具",
-    )
-    async def giveaway(self, interaction: discord.Interaction) -> None:
-        await interaction.response.send_modal(GST.GUI())
-
-
-    @app_commands.command(name="sync", description="Sync commands 同步指令")
-    async def sync(self, interaction: discord.Interaction) -> None:
-        await self.bot.tree.sync()
-        await interaction.response.send_message(
-            content="Commands synced.",
-            ephemeral=True,
-        )
-
-
-    @app_commands.command(
-        name="help",
-        description="Show available bot commands 檢視可用的bot指令",
-    )
-    @app_commands.choices(command=[cmd.name for cmd in bot.bot.tree.walk_commands()])
-    async def help(
-        self,
-        interaction: discord.Interaction,
-        command: typing.Optional[str] = None,
-    ) -> None:
-        embed = functions.create_help_embed(self.bot, command)
-        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
     @app_commands.command(
@@ -117,6 +87,40 @@ class Utils(classes.Cog_Extension):
             content=f"Reloaded 已重新載入 {extensions.name}",
             ephemeral=True,
         )
+
+
+    @app_commands.command(
+        name="giveaway",
+        description="Launch the Giveaway Setup Tool 開啟抽獎工具",
+    )
+    async def giveaway(self, interaction: discord.Interaction) -> None:
+        await interaction.response.send_modal(GST.GUI())
+
+
+    @app_commands.command(
+        name="sync",
+        description="Sync commands 同步指令",
+    )
+    async def sync(self, interaction: discord.Interaction) -> None:
+        await self.bot.tree.sync()
+        await interaction.response.send_message(
+            content="Commands synced.",
+            ephemeral=True,
+        )
+
+
+    @app_commands.command(
+        name="help",
+        description="Show available bot commands 檢視可用的bot指令",
+    )
+    @app_commands.choices(command=[cmd.name for cmd in bot.bot.tree.walk_commands()])
+    async def help(
+        self,
+        interaction: discord.Interaction,
+        command: typing.Optional[str] = None,
+    ) -> None:
+        embed = functions.create_help_embed(self.bot, command)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 async def setup(bot: commands.Bot):

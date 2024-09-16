@@ -41,24 +41,6 @@ async def on_ready() -> None:
     bot.add_view(GST.GSTButtonView())
 
 
-@bot.command()
-async def load(ctx, extension):
-    await bot.load_extension(f"cogs.{extension}")
-    await ctx.reply(f"Done loading {extension}.")
-
-
-@bot.command()
-async def unload(ctx, extension):
-    await bot.unload_extension(f"cogs.{extension}")
-    await ctx.reply(f"Done unloading {extension}.")
-
-
-@bot.command()
-async def reload(ctx, extension):
-    await bot.reload_extension(f"cogs.{extension}")
-    await ctx.reply(f"Done reloading {extension}.")
-
-
 async def load_extensions():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):
