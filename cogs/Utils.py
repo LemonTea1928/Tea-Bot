@@ -6,7 +6,6 @@
 import os
 import typing
 
-import core.GST as GST
 import core.functions as functions
 import core.classes as classes
 import bot
@@ -87,14 +86,6 @@ class Utils(classes.Cog_Extension):
             content=f"Reloaded 已重新載入 {extensions.name}",
             ephemeral=True,
         )
-
-
-    @app_commands.command(
-        name="giveaway",
-        description="Launch the Giveaway Setup Tool 開啟抽獎工具",
-    )
-    async def giveaway(self, interaction: discord.Interaction) -> None:
-        await interaction.response.send_modal(GST.GUI())
 
 
     @app_commands.command(

@@ -6,7 +6,6 @@
 import pygsheets.client
 import core.functions as functions
 
-import time
 import datetime
 
 import discord
@@ -30,7 +29,7 @@ def get_end_time(now_time: datetime.datetime, time: discord.ui.TextInput) -> int
     return round(end_time.timestamp())
 
 
-def createEmbed(name, prize, num, time) -> tuple[discord.Embed, int]:
+def createEmbed(prize, num, time) -> tuple[discord.Embed, int]:
     """
     Create a giveaway embed upon submission of the GUI
     
@@ -48,8 +47,7 @@ def createEmbed(name, prize, num, time) -> tuple[discord.Embed, int]:
     end_time: int = get_end_time(now_time=now_time, time=time)
     
     embed: discord.Embed = discord.Embed(
-        title=f"{name}",
-        description=f"{prize}",
+        title=f"{prize}",
         timestamp=now_time,
         color=discord.Color.from_str("#ffa500"),
     )
@@ -98,7 +96,8 @@ def checker(current_sht: pygsheets.Worksheet, embed: discord.Embed) -> discord.E
 
 
 def random_draw(
-    sheet_df: pd.DataFrame, now_time: int
+    sheet_df: pd.DataFrame,
+    now_time: int,
 ) -> tuple[int, int, int, np.ndarray]:
     """
     Randomly draw winner(s) from a giveaway
@@ -116,7 +115,7 @@ def random_draw(
         If inactive/ (active & has ended) giveaway: (0, 0, 0, np.array[0])
     """
     activity: pd.DataFrame = sheet_df.drop(
-        labels=["Giveaway name", "Giveaway prize"],
+        labels=["Giveaway prize"],
         axis=1,
     )
     activity: pd.DataFrame = activity[
@@ -134,34 +133,40 @@ def random_draw(
         sheet_df: pd.DataFrame = sheet.get_as_df().select_dtypes(include=["integer"])
         winners_id: np.ndarray = sheet_df.sample(n=num_winners).to_numpy()
         
-        GSTSheet.wks1.update_value(addr=(index + 2, 6), val=0,)
+        GSTSheet.wks1.update_value(addr=(index + 2, 6), val=0)
         
         return 1, index, message_id, winners_id
 
 
-def end_time_retrieve(sheet_df: pd.DataFrame) -> list:
-    """
-    Retrieve active giveaway end_time (formatted as datetime.time)
-    
-    Args:
-        sheet_df (DataFrame): The activity board worksheet in DataFrame format
-    
-    Returns:
-        end_time_list (list): A list containing all active giveaway end time
-    """
-    time_zone = datetime.timezone(
-        offset=datetime.timedelta(hours=8), 
-        name="utc",
+def create_listall_embed() -> discord.Embed:
+    activity_df = GSTSheet.wks1.get_as_df()
+    activity_df = activity_df[activity_df['1 (Active) | 0 (Inactive)'] == 1]
+
+    if activity_df.empty:
+        return discord.Embed(
+            title="❌ No active giveaways at the moment! 目前沒有進行中的抽獎活動！",
+            color=discord.Color.from_str("#ffa500"),
+        )
+
+    listall_embed = discord.Embed(
+        title="📨 All active giveaways 所有進行中的抽獎活動",
+        color=discord.Color.from_str("#ffa500"),
     )
-    
-    sheet_df: pd.DataFrame = sheet_df.select_dtypes(include=["integer"])
-    sheet_df: pd.DataFrame = sheet_df[sheet_df["1 (Active) | 0 (Inactive)"] == 1]
-    end_time_list = [
-        datetime.datetime.fromtimestamp(day, time_zone).time()
-        for day in sheet_df["Ending time"].tolist()
-    ]
-    
-    return end_time_list
+    with open('./credentials/guild_id.txt') as guild_id:
+        guild: str = guild_id.readline()
+    with open('./credentials/channel_id.txt') as channel_id:
+        channel: str = channel_id.readline()
+
+    for row in activity_df.itertuples():
+        message, prize, num_winners, end_time = row[1], row[2], row[3], row[4]
+        listall_embed.add_field(
+            name=f"🆔 https://discord.com/channels/{guild}/{channel}/{message}",
+            value=f"**Prize:** {prize}\n" \
+            f"**Winner(s):** {num_winners}\n" \
+            f"**End time:** <t:{end_time}:f>",
+        )
+
+    return listall_embed
 
 
 class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
@@ -174,11 +179,6 @@ class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
         num (discord.ui.TextInput -> int): Number of winner(s) of the giveaway
         time (discord.ui.TextInput -> float): Duration of the giveaway in day(s)
     """
-    name = discord.ui.TextInput(
-        label="Name 名稱",
-        min_length=1,
-        max_length=50,
-    )
     prize = discord.ui.TextInput(
         label="Prize description 獎品描述",
         min_length=1,
@@ -212,7 +212,6 @@ class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
             None
         """
         embed, end_time = createEmbed(
-            self.name,
             self.prize,
             self.num,
             self.time,
@@ -226,7 +225,6 @@ class GUI(discord.ui.Modal, title="🎁 Giveaway Setup Tool (GST)"):
         
         message = await interaction.original_response()
         setattr(sheet, "message", message)
-        setattr(sheet, "name", self.name)
         setattr(sheet, "prize", self.prize)
         setattr(sheet, "num", self.num)
         setattr(sheet, "end_time", end_time)
@@ -354,7 +352,6 @@ class GSTSheet:
         values = [
             [
                 str(self.message.id),
-                str(self.name),
                 str(self.prize),
                 str(self.num),
                 str(self.end_time),
