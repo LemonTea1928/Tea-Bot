@@ -1,4 +1,4 @@
-# Tea Bot - By nighttea_wf
+# Tea Bot - By LemonTea1928
 
 All-in-one bot for the private NetCafe discord server based on discord.py
 
