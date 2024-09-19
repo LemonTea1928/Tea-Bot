@@ -157,8 +157,7 @@ def check_word(word :str, guessed_word: str) -> list[tuple[str]]:
         if letter == word[index]:
             encoded_letters[index] = (CORRECT_GREEN, letter)
             word[index] = None
-    for index, letter in enumerate(guessed_word):
-        if letter in word:
+        elif letter in word:
             encoded_letters[index] = (CHANGE_YELLOW, letter)
             word[word.index(letter)] = None
     
