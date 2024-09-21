@@ -4,6 +4,7 @@
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 import random
+import asyncio
 from collections.abc import Generator
 
 import discord
@@ -93,8 +94,68 @@ EMOJI_CODES = {
         "x": "<:gray_x:1284445981894770719>",
         "y": "<:gray_y:1284445988030906379>",
         "z": "<:gray_z:1284445995530194954>",
+        " ": " ",
     },
 }
+
+
+def create_word_embed(
+    qwerty_list: list[list[str]] = [[], [], []],
+) -> tuple[list[list[str]], discord.Embed]:
+    
+    qwerty: str = "qwertyuiop"
+    asdfgh: str = "asdfghjkl"
+    zxcvbn: str = "zxcvbnm"
+    
+    qwerty_list[0] = [EMOJI_CODES["gray"][letter] for letter in qwerty]
+    qwerty_list[1] = [EMOJI_CODES["gray"][letter] for letter in asdfgh]
+    qwerty_list[2] = [EMOJI_CODES["gray"][letter] for letter in zxcvbn]
+    
+    return (
+        qwerty_list,
+        discord.Embed(
+            description=f"{" ".join(qwerty_list[0])}\n" \
+                        f"{" ".join(qwerty_list[1])}\n" \
+                        f"{" ".join(qwerty_list[2])}",
+        ),
+    )
+
+
+def update_word_embed(
+    codes: list[str],
+    qwerty_list: list[list[str]],
+) -> tuple[list[list[str]], discord.Embed]:
+
+    new_qwerty_list: list[list[str]] = [
+        [qwerty_letter.split(":")[1][-1] for qwerty_letter in row]
+        for row in qwerty_list
+    ]
+    
+    for colour_letter in codes:
+        
+        letter: str = colour_letter.split(":")[1][-1]
+        
+        index: list[tuple[int]] = [
+            (row_index, row_list.index(letter))
+            for row_index, row_list in enumerate(new_qwerty_list)
+            if letter in row_list
+        ]
+        
+        qwerty_letter: str = qwerty_list[index[0][0]][index[0][1]]
+        qwerty_letter: str = qwerty_letter.split(":")[1].split("_")[0]
+        if qwerty_letter == "green":
+            continue
+
+        qwerty_list[index[0][0]][index[0][1]] = colour_letter
+        
+    return (
+        qwerty_list,
+        discord.Embed(
+            description=f"{" ".join(qwerty_list[0])}\n" \
+                        f"{" ".join(qwerty_list[1])}\n" \
+                        f"{" ".join(qwerty_list[2])}",
+        ),
+    )
 
 
 def read_one_word() -> Generator[str, None, None]:
@@ -104,6 +165,7 @@ def read_one_word() -> Generator[str, None, None]:
     Returns:
         Generator (str): Generator yielding a randomly chosen 5-letter word
     """
+    
     with open("./miscellaneous/wordle_words.txt") as words:
         yield random.choice(words.readlines())
 
@@ -118,6 +180,7 @@ def is_valid(guessed_word: str) -> bool:
     Returns:
         bool: Whether the word exists or not
     """
+
     with open("./miscellaneous/wordle_all_words.txt") as all_words:
         words = all_words.readlines()
     
@@ -141,6 +204,7 @@ def check_word(word :str, guessed_word: str) -> list[tuple[str]]:
     Returns:
         list: A list having 5 tuples, each encoding a colour for a letter
     """
+
     CORRECT_GREEN: str = "green"
     CHANGE_YELLOW: str = "yellow"
     INCORRECT_GRAY: str = "gray"
@@ -164,13 +228,33 @@ def check_word(word :str, guessed_word: str) -> list[tuple[str]]:
     return encoded_letters
 
 
-def get_word_emojis(encoded_letters: list[tuple[str]]) -> str:
-    codes = [EMOJI_CODES[colour][letter] for colour, letter in encoded_letters]
-    return "".join(codes)
+def get_word_emojis(encoded_letters: list[tuple[str]]) -> tuple[list[str], str]:
+    codes: list[str] = [
+        EMOJI_CODES[colour][letter] for colour, letter in encoded_letters
+    ]
+    
+    return codes, "".join(codes)
 
 
-def emoji_to_msg(word: str, guessed_word: str) -> str:
+def emoji_to_msg(word: str, guessed_word: str) -> tuple[list[str], str]:
     return get_word_emojis(check_word(word, str(guessed_word)))
+
+
+async def send_invalid_word_message(interaction: discord.Interaction) -> None:
+    await interaction.response.send_message(
+        content="❌ Invalid word! 無效字詞！",
+        ephemeral=True,
+    )
+    message = await interaction.original_response()
+
+    for second in range(3, -1, -1):
+        await message.edit(
+            content=f"❌ Invalid word! 無效字詞！({second}s)",
+        )
+        if second == 0:
+            await message.delete()
+            return
+        await asyncio.sleep(1.0)
 
 
 class StartView(discord.ui.View):
@@ -181,6 +265,7 @@ class StartView(discord.ui.View):
         cmd_interaction (discord.Interaction): From slash command
         word (str): A stripped and randomly-drawn word for guessing
     """
+
     def __init__(self, cmd_interaction: discord.Interaction) -> None:
         self.cmd_interaction: discord.Interaction = cmd_interaction
         self.canvas: list[str] = ["◻️" * 5 for _ in range(6)]
@@ -199,9 +284,11 @@ class StartView(discord.ui.View):
         Built-in discord.py method for button callback. On click, add a blank
         Wordle canvas and two buttons (guess & abandon) to edit the message
         """
+        qwerty_list, embed = create_word_embed()
         await interaction.response.edit_message(
             content="\n".join(self.canvas),
-            view=GameView(self.cmd_interaction, self.word, self.canvas),
+            embed=embed,
+            view=GameView(self.cmd_interaction, self.word, self.canvas, qwerty_list),
         )
 
 
@@ -214,18 +301,22 @@ class GameView(discord.ui.View):
         abandon_button_clicked (bool): Check if the abandon_button was clicked
         word (str): A randomly-drawn word for guessing
     """
+
     def __init__(
         self,
         cmd_interaction: discord.Interaction,
         word: str,
         canvas: str,
+        qwerty_list: list[list[str]],
         guess: int = 0,
     ) -> None:
-        self.cmd_interaction: discord.Interaction = cmd_interaction
+        
         self.word: str = word
-        self.canvas: str = canvas
         self.guess: int = guess
+        self.canvas: str = canvas
         self.abandon_button_clicked: bool = False
+        self.qwerty_list: list[list[str]] = qwerty_list
+        self.cmd_interaction: discord.Interaction = cmd_interaction
         super().__init__(timeout=None)
     
     @discord.ui.button(
@@ -244,7 +335,7 @@ class GameView(discord.ui.View):
             word (str): The randomly-drawn word to be checked in GUI section
         """
         await interaction.response.send_modal(
-            GUI(self.cmd_interaction, self.word, self.canvas, self.guess)
+            GUI(self.cmd_interaction, self.word, self.canvas, self.guess, self.qwerty_list)
         )
     
     @discord.ui.button(
@@ -279,6 +370,7 @@ class GUI(discord.ui.Modal, title="😤 Guess it! 猜吧！"):
         guess_word (discord.ui.TextInput -> str): The user-gussed word
         word (str): The randomly-drawn word to be checked here
     """
+
     guessed_word = discord.ui.TextInput(
         label="Required 必填",
         placeholder="Input a 5-letter word 鍵入一個五字詞",
@@ -292,30 +384,33 @@ class GUI(discord.ui.Modal, title="😤 Guess it! 猜吧！"):
         word: str,
         canvas: str,
         guess: int,
+        qwerty_list: list[list[str]],
     ) -> None:
-        self.cmd_interaction: discord.Interaction = cmd_interaction
+        
         self.word: str = word
-        self.canvas: str = canvas
         self.guess: int = guess
+        self.canvas: str = canvas
+        self.qwerty_list: list[list[str]] = qwerty_list
+        self.cmd_interaction: discord.Interaction = cmd_interaction
         super().__init__(timeout=None)
 
-    async def on_submit(self, interaction: discord.Interaction) -> None:
-        if not is_valid(self.guessed_word.value):
-            await interaction.response.send_message(
-                content="❌ Invalid word! 無效字詞！\n"
-                "(This message deletes in 3s... 此訊息將在3秒內刪除...)",
-                delete_after=3.0,
-                ephemeral=True,
-            )
-            return
-        
-        self.guess += 1
-        self.canvas[self.guess - 1] = emoji_to_msg(
-            self.word,
-            self.guessed_word.value,
-        )
 
-        if self.guessed_word.value == self.word:
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        try:
+            guessed_word: str = self.guessed_word.value.casefold()
+        except Exception:
+            await send_invalid_word_message(interaction)
+
+        if not is_valid(guessed_word):
+            await send_invalid_word_message(interaction)
+
+        self.guess += 1
+        codes, self.canvas[self.guess - 1] = emoji_to_msg(
+            self.word,
+            guessed_word,
+        )
+        
+        if guessed_word == self.word:
             await interaction.response.edit_message(
                 content="\n".join(self.canvas),
                 embed=discord.Embed(title="🥳 You guessed it! 你猜到了！"),
@@ -323,7 +418,7 @@ class GUI(discord.ui.Modal, title="😤 Guess it! 猜吧！"):
             )
             return
         
-        if (self.guessed_word.value != self.word) and (self.guess == 6):
+        if (guessed_word != self.word) and (self.guess == 6):
             await interaction.response.edit_message(
                 content="\n".join(self.canvas),
                 embed=discord.Embed(
@@ -333,15 +428,18 @@ class GUI(discord.ui.Modal, title="😤 Guess it! 猜吧！"):
             )
             return
         
+        qwerty_list, embed = update_word_embed(codes, self.qwerty_list)
         view = GameView(
             self.cmd_interaction,
             self.word,
             self.canvas,
+            qwerty_list,
             self.guess,
         )
         
         await interaction.response.edit_message(
             content="\n".join(self.canvas),
+            embed=embed,
             view=view,
         )
 

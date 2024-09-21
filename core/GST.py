@@ -133,7 +133,7 @@ def random_draw(
         sheet_df: pd.DataFrame = sheet.get_as_df().select_dtypes(include=["integer"])
         winners_id: np.ndarray = sheet_df.sample(n=num_winners).to_numpy()
         
-        GSTSheet.wks1.update_value(addr=(index + 2, 6), val=0)
+        GSTSheet.wks1.update_value(addr=(index + 2, 5), val=0)
         
         return 1, index, message_id, winners_id
 

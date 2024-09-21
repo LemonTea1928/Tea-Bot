@@ -73,7 +73,7 @@ class Tasks(classes.Cog_Extension):
             int(open('./credentials/channel_id.txt').read()),
         )
         message: discord.Message = await channel.fetch_message(
-            id=message_id,
+            message_id,
         )
         await message.reply(
             "🥳 Congratulations to "
