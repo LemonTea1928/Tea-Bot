@@ -94,15 +94,57 @@ EMOJI_CODES = {
         "x": "<:gray_x:1284445981894770719>",
         "y": "<:gray_y:1284445988030906379>",
         "z": "<:gray_z:1284445995530194954>",
-        " ": " ",
     },
+    "darkgray": {
+        "a": "<:darkgray_a:1287498566683594802>",
+        "b": "<:darkgray_b:1287500875824234657>",
+        "c": "<:darkgray_c:1287500885936705548>",
+        "d": "<:darkgray_d:1287500894463721624>",
+        "e": "<:darkgray_e:1287500909815009310>",
+        "f": "<:darkgray_f:1287500919457710080>",
+        "g": "<:darkgray_g:1287500926344757379>",
+        "h": "<:darkgray_h:1287500933105848402>",
+        "i": "<:darkgray_i:1287500940693475328>",
+        "j": "<:darkgray_j:1287500958984835112>",
+        "k": "<:darkgray_k:1287500967516049450>",
+        "l": "<:darkgray_l:1287500974147244122>",
+        "m": "<:darkgray_m:1287500980681965789>",
+        "n": "<:darkgray_n:1287500990156771379>",
+        "o": "<:darkgray_o:1287500998230671502>",
+        "p": "<:darkgray_p:1287501004333650033>",
+        "q": "<:darkgray_q:1287501011023560755>",
+        "r": "<:darkgray_r:1287501016698196000>",
+        "s": "<:darkgray_s:1287501022876663810>",
+        "t": "<:darkgray_t:1287501030908760094>",
+        "u": "<:darkgray_u:1287501037728436317>",
+        "v": "<:darkgray_v:1287501044158304337>",
+        "w": "<:darkgray_w:1287501050382909471>",
+        "x": "<:darkgray_x:1287501057223823363>",
+        "y": "<:darkgray_y:1287501063804551330>",
+        "z": "<:darkgray_z:1287501071509360710>",
+    }
 }
 
 
 def create_word_embed(
     qwerty_list: list[list[str]] = [[], [], []],
 ) -> tuple[list[list[str]], discord.Embed]:
+    """
+    Create an embed with gray emojis of QWERTY keyboard layout
+
+    1.  Initialize each keyboard row (qwerty, asdfgh, zxcvbn)
+    2.  Map each letter in rows with corresponding EMOJI_CODES in the list
+
+    Args:
+        qwerty_list (list[list[str]]): The QWERTY keyboard layout list,\
+        default is an empty nested list with 3 rows for initialization
     
+    Returns:
+        (tuple): Tuple containing:
+            qwerty_list (list[list[str]]): The updated QWERTY keyboard list
+            Embed (discord.Embed): The list formatted in string
+    """
+
     qwerty: str = "qwertyuiop"
     asdfgh: str = "asdfghjkl"
     zxcvbn: str = "zxcvbnm"
@@ -125,28 +167,63 @@ def update_word_embed(
     codes: list[str],
     qwerty_list: list[list[str]],
 ) -> tuple[list[list[str]], discord.Embed]:
+    """
+    Update the QWERTY embed with corresponding coloured letters
 
+    1.  Create a new QWERTY list by extracting just the alphabet in each
+        EMOJI_CODES (ignoring words and symbols)
+    2.  While looping each coloured letter in the input "codes":
+    3.  Extract just the alphabet and colour respectively in each coloured
+        letter for later finding its location in the new QWERTY list
+    4.  Find the letter's indices in the new QWERTY list
+    5.  Using the indices, locate the corresponding EMOJI_CODES and only
+        extract the letter's colour
+    6.  If the letter is green, or yellow and code letter's colour is gray,
+        skip this loop as it shouldn't be updated
+    7.  If the letter is gray, update the original QWERTY list with a
+        dark gray letter
+    8.  Otherwise, update the original QWERTY list with the coloured letter
+
+    Args:
+        codes (list[str]): The list with coloured letters, contains five\
+        EMOJI_CODES
+        qwerty_list (list[list[str]]): The QWERTY keyboard layout list to be\
+        updated with coloured letters
+    
+    Returns:
+        (tuple): Tuple containing:
+            qwerty_list (list[list[str]]): The updated QWERTY keyboard list
+            Embed (discord.Embed): The list formatted in string
+    """
+    
     new_qwerty_list: list[list[str]] = [
         [qwerty_letter.split(":")[1][-1] for qwerty_letter in row]
         for row in qwerty_list
     ]
     
-    for colour_letter in codes:
+    for coloured_letter in codes:
         
-        letter: str = colour_letter.split(":")[1][-1]
+        letter: str = coloured_letter.split(":")[1][-1]
+        colour: str = coloured_letter.split(":")[1].split("_")[0]
         
-        index: list[tuple[int]] = [
+        indices: list[tuple[int]] = [
             (row_index, row_list.index(letter))
             for row_index, row_list in enumerate(new_qwerty_list)
             if letter in row_list
         ]
         
-        qwerty_letter: str = qwerty_list[index[0][0]][index[0][1]]
-        qwerty_letter: str = qwerty_letter.split(":")[1].split("_")[0]
-        if qwerty_letter == "green":
+        row, col = indices[0][0], indices[0][1]
+        
+        qwerty_letter: str = qwerty_list[row][col]
+        qwerty_colour: str = qwerty_letter.split(":")[1].split("_")[0]
+        
+        if qwerty_colour == "green" or (qwerty_colour == "yellow" and colour == "gray"):
             continue
-
-        qwerty_list[index[0][0]][index[0][1]] = colour_letter
+        elif (qwerty_colour == "gray" or qwerty_colour == "darkgray") and colour == "gray":
+            qwerty_list[row][col] = EMOJI_CODES["darkgray"][letter]
+            continue
+        
+        qwerty_list[row][col] = coloured_letter
         
     return (
         qwerty_list,
@@ -397,13 +474,13 @@ class GUI(discord.ui.Modal, title="😤 Guess it! 猜吧！"):
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         try:
-            guessed_word: str = self.guessed_word.value.casefold()
+            guessed_word: str = self.guessed_word.value.lower()
         except Exception:
             await send_invalid_word_message(interaction)
-
+        
         if not is_valid(guessed_word):
             await send_invalid_word_message(interaction)
-
+        
         self.guess += 1
         codes, self.canvas[self.guess - 1] = emoji_to_msg(
             self.word,
