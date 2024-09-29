@@ -1,8 +1,8 @@
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
                                         Wordle
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 import random
 import asyncio
 from collections.abc import Generator
@@ -217,9 +217,14 @@ def update_word_embed(
         qwerty_letter: str = qwerty_list[row][col]
         qwerty_colour: str = qwerty_letter.split(":")[1].split("_")[0]
         
-        if qwerty_colour == "green" or (qwerty_colour == "yellow" and colour == "gray"):
+        if qwerty_colour == "green" or (
+            qwerty_colour == "yellow" and colour == "gray"
+        ):
             continue
-        elif (qwerty_colour == "gray" or qwerty_colour == "darkgray") and colour == "gray":
+        
+        elif colour == "gray" and (
+            qwerty_colour == "gray" or qwerty_colour == "darkgray"
+        ):
             qwerty_list[row][col] = EMOJI_CODES["darkgray"][letter]
             continue
         
@@ -365,7 +370,12 @@ class StartView(discord.ui.View):
         await interaction.response.edit_message(
             content="\n".join(self.canvas),
             embed=embed,
-            view=GameView(self.cmd_interaction, self.word, self.canvas, qwerty_list),
+            view=GameView(
+                self.cmd_interaction,
+                self.word,
+                self.canvas,
+                qwerty_list,
+            ),
         )
 
 
@@ -412,7 +422,13 @@ class GameView(discord.ui.View):
             word (str): The randomly-drawn word to be checked in GUI section
         """
         await interaction.response.send_modal(
-            GUI(self.cmd_interaction, self.word, self.canvas, self.guess, self.qwerty_list)
+            GUI(
+                self.cmd_interaction,
+                self.word,
+                self.canvas,
+                self.guess,
+                self.qwerty_list,
+            )
         )
     
     @discord.ui.button(

@@ -45,13 +45,13 @@ class Tasks(classes.Cog_Extension):
             winner(s) using GST.random_draw() function, returns a tuple containing an
             indicator, an index, a message ID, and winner(s) ID
         2.  The indicator is 0 or 1 where 0 = Inactive/ active but not ending giveaway,
-            and 1 = active and ending giveaway. If indicator = 0 then end the task until
-            next loop
-        3.  If indicator = 1 then 1st) fetch the original Discord giveaway message in a
-            specified channel using the message ID, 2nd) reply to the message stating
-            the winner(s)
-        4.  Update the original giveaway message with winner(s) and final entries, then
-            remove the join_giveaway_button
+            and 1 = active and ending giveaway. If indicator = 0 then end the task
+            until next loop
+        3.  If indicator = 1 then 1st) fetch the original Discord giveaway message in
+            a specified channel using the message ID, 2nd) reply to the message
+            stating the winner(s)
+        4.  Update the original giveaway message with winner(s) and final entries,
+            then remove the join_giveaway_button
         5.  Update the 'Winner(s)' cell in activity board with winner(s) ID
 
         Returns:

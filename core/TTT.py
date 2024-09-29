@@ -1,8 +1,8 @@
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
                                     Tic Tac Toe (TTT) 
                             (Adapted from discord.py example)
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 import cogs.Games as Games
 
 from typing import List
@@ -196,6 +196,7 @@ class PlayerSelectButton(discord.ui.View):
     ) -> None:
         self.o_id: int = interaction_o.user.id
         if self.o_id == self.x_id:
+            self.o_id = 0
             await interaction_o.response.send_message(
                 content="❌ You cannot impersonate others! 你不能冒充其他人！❌",
                 ephemeral=True,
@@ -215,6 +216,7 @@ class PlayerSelectButton(discord.ui.View):
     ) -> None:
         self.x_id: int = interaction_x.user.id
         if self.x_id == self.o_id:
+            self.x_id = 1
             await interaction_x.response.send_message(
                 content="❌ You cannot impersonate others! 你不能冒充其他人！❌",
                 ephemeral=True,
