@@ -1,3 +1,4 @@
+import psutil
 import datetime
 import typing
 
@@ -65,6 +66,24 @@ def create_help_embed(
             value="❌ I couldn't find this command! 我找不到這個指令！",
         )
     return help_embed
+
+
+def create_usage_embed() -> discord.Embed:
+    usage_embed: discord.Embed = discord.Embed(
+        title="📊 Tea Bot System Usage 系統資源使用率",
+    )
+    usage_embed.add_field(
+        name="CPU",
+        value=f"{psutil.cpu_percent(1.0)}%",
+        inline=True,
+    )
+    usage_embed.add_field(
+        name="RAM",
+        value=f"{psutil.virtual_memory()[3]/1000000000.0:.1f} GB"\
+        f" ({psutil.virtual_memory()[2]}%)",
+        inline=True,
+    )
+    return usage_embed
 
 
 if __name__ == "__main__":

@@ -36,7 +36,6 @@ class Utils(classes.Cog_Extension):
         if filename.endswith(".py")
     ]
 
-
     @app_commands.command(
         name="load",
         description="Load cogs extension 載入cogs附加元件",
@@ -52,7 +51,6 @@ class Utils(classes.Cog_Extension):
             content=f"Loaded 已載入 {extensions.name}",
             ephemeral=True,
         )
-
 
     @app_commands.command(
         name="unload",
@@ -70,7 +68,6 @@ class Utils(classes.Cog_Extension):
             ephemeral=True,
         )
 
-
     @app_commands.command(
         name="reload",
         description="Reload cogs extension 重新載入cogs附加元件",
@@ -87,7 +84,6 @@ class Utils(classes.Cog_Extension):
             ephemeral=True,
         )
 
-
     @app_commands.command(
         name="sync",
         description="Sync commands 同步指令",
@@ -98,7 +94,6 @@ class Utils(classes.Cog_Extension):
             content="Commands synced.",
             ephemeral=True,
         )
-
 
     @app_commands.command(
         name="help",
@@ -111,6 +106,17 @@ class Utils(classes.Cog_Extension):
         command: typing.Optional[str] = None,
     ) -> None:
         embed = functions.create_help_embed(self.bot, command)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    @app_commands.command(
+        name="usage",
+        description="Show bot's system usage 檢視bot的系統資源使用率",
+    )
+    async def usage(
+        self,
+        interaction: discord.Interaction,
+    ) -> None:
+        embed = functions.create_usage_embed()
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
